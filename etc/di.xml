@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <preference for="Apexx\Cse\Api\ApexxCseOrderPaymentStatusInterface"
+                type="Apexx\Cse\Model\ApexxCseOrderPaymentStatus"/>
+
+    <!-- Payment Method Facade configuration -->
+    <virtualType name="CseFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">
+                \Apexx\Cse\Model\Ui\ConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Apexx\Cse\Block\Info</argument>
+            <argument name="valueHandlerPool" xsi:type="object">CseValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">CseCommandPool</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Configuration reader -->
+    <virtualType name="CseConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode"
+                      xsi:type="const">\Apexx\Cse\Model\Ui\ConfigProvider::CODE
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Logger, initialized with CseConfig -->
+    <virtualType name="CseLogger" type="Magento\Payment\Model\Method\Logger">
+        <arguments>
+            <argument name="config" xsi:type="object">CseConfig</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Apexx\Cse\Gateway\Http\Client\AuthorizeMock">
+        <arguments>
+            <argument name="logger" xsi:type="object">CseLogger</argument>
+        </arguments>
+    </type>
+
+    <!-- Commands infrastructure -->
+    <virtualType name="CseCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="authorize" xsi:type="string">CseAuthorizeCommand</item>
+                <item name="capture" xsi:type="string">CseCaptureCommand</item>
+                <item name="void" xsi:type="string">CseVoidCommand</item>
+                <item name="refund" xsi:type="string">CseRefundCommand</item>
+                <item name="cancel" xsi:type="string">Apexx\Cse\Gateway\CancelCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Authorize command -->
+    <virtualType name="CseAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">CseAuthorizationRequest</argument>
+            <argument name="handler" xsi:type="object">CseResponseHandlerComposite</argument>
+            <argument name="transferFactory"
+                      xsi:type="object">Apexx\Cse\Gateway\Http\TransferFactory</argument>
+            <argument name="validator"
+                      xsi:type="object">Apexx\Cse\Gateway\Validator\AuthorizeResponseValidator</argument>
+            <argument name="client" xsi:type="object">Apexx\Cse\Gateway\Http\Client\AuthorizeMock</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Authorization Request -->
+    <virtualType name="CseAuthorizationRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="transaction"
+                      xsi:type="string">Apexx\Cse\Gateway\Request\AuthorizationRequest</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="Apexx\Cse\Gateway\Request\AuthorizationRequest">
+        <arguments>
+            <argument name="config" xsi:type="object">CseConfig</argument>
+        </arguments>
+    </type>
+
+    <!-- Capture command -->
+    <virtualType name="CseCaptureCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder"
+                      xsi:type="object">Apexx\Cse\Gateway\Request\CaptureRequest</argument>
+            <argument name="handler" xsi:type="object">Apexx\Cse\Gateway\Response\CaptureHandler</argument>
+            <argument name="transferFactory"
+                      xsi:type="object">Apexx\Cse\Gateway\Http\TransferFactory</argument>
+            <argument name="validator"
+                      xsi:type="object">Apexx\Cse\Gateway\Validator\ResponseCaptureValidator</argument>
+            <argument name="client" xsi:type="object">Apexx\Cse\Gateway\Http\Client\CaptureMock</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Capture Request -->
+    <type name="Apexx\Cse\Gateway\Request\CaptureRequest">
+        <arguments>
+            <argument name="config" xsi:type="object">CseConfig</argument>
+        </arguments>
+    </type>
+
+    <!-- Void command -->
+    <virtualType name="CseVoidCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder"
+                      xsi:type="object">Apexx\Cse\Gateway\Request\VoidRequest</argument>
+            <argument name="handler" xsi:type="object">Apexx\Cse\Gateway\Response\VoidHandler
+            </argument>
+            <argument name="transferFactory"
+                      xsi:type="object">Apexx\Cse\Gateway\Http\TransferFactory</argument>
+            <argument name="validator"
+                      xsi:type="object">Apexx\Cse\Gateway\Validator\CancelResponseValidator</argument>
+            <argument name="client" xsi:type="object">Apexx\Cse\Gateway\Http\Client\VoidMock
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Void Request -->
+    <type name="Apexx\Cse\Gateway\Request\VoidRequest">
+        <arguments>
+            <argument name="config" xsi:type="object">CseConfig</argument>
+        </arguments>
+    </type>
+
+     <!-- Cancel Command -->
+    <virtualType name="Apexx\Cse\Gateway\CancelCommand" type="CseVoidCommand">
+        <arguments>
+            <argument name="handler" xsi:type="object">Apexx\Cse\Gateway\Response\CancelDetailsHandler</argument>
+        <argument name="validator" xsi:type="object">Apexx\Cse\Gateway\Validator\CancelResponseValidator</argument>
+        </arguments>
+    </virtualType>
+    <!-- END Cancel Command -->
+
+    <virtualType name="CseRefundCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="client" xsi:type="object">Apexx\Cse\Gateway\Http\Client\RefundMock</argument>
+            <argument name="requestBuilder" xsi:type="object">Apexx\Cse\Gateway\Request\RefundRequest</argument>
+            <argument name="validator" xsi:type="object">Apexx\Cse\Gateway\Validator\RefundResponseValidator</argument>
+            <argument name="handler" xsi:type="object">Apexx\Cse\Gateway\Response\RefundHandler</argument>
+            <argument name="transferFactory" xsi:type="object">Apexx\Cse\Gateway\Http\TransferFactory</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Response handlers -->
+    <virtualType name="CseResponseHandlerComposite" type="Magento\Payment\Gateway\Response\HandlerChain">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="txnid" xsi:type="string">Apexx\Cse\Gateway\Response\TxnIdHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Value handlers infrastructure -->
+    <virtualType name="CseValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">CseConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="CseConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">CseConfig</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Apexx\Cse\Block\Info">
+        <arguments>
+            <argument name="config" xsi:type="object">CseConfig</argument>
+        </arguments>
+    </type>
+     <type name="Magento\Payment\Model\Method\Adapter">
+    <plugin name="apexx_cse_payment_action"
+            type="Apexx\Cse\Plugin\Method\ApexxAdapter" sortOrder="20"/>
+    </type>
+</config>

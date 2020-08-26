@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="payment_method_assign_data">
+        <observer name="cse_payment_gateway_data_assign"
+                  instance="Apexx\Cse\Observer\DataAssignObserver" />
+    </event>
+     <!-- Restrict Cse Payment method depends on currency -->
+    <event name="payment_method_is_active">
+        <observer name="restrict_cse_payment_currency" instance="Apexx\Cse\Observer\DisabledCurrency" />
+    </event>
+     <event name="sales_order_place_after">
+        <observer name="apexx_csepayment_place_order_after" instance="Apexx\Cse\Observer\OrderObserver" />
+    </event>
+</config>
