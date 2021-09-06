@@ -95,7 +95,7 @@ class AuthorizationRequest implements BuilderInterface
             ],
             "customer_ip"=> $order->getRemoteIp(),
             "dynamic_descriptor" => $this->configHelper->getDynamicDescriptor(),
-            "merchant_reference" => "JOURNEYBOX".$order->getOrderIncrementId(),
+            "merchant_reference" => $this->apexxBaseHelper->getStoreCode().$order->getOrderIncrementId(),
             "recurring_type"=> $this->configHelper->getRecurringType(),
             "user_agent"=> $this->apexxBaseHelper->getUserAgent(),
             "three_ds"=>[

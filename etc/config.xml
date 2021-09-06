@@ -21,7 +21,7 @@
                 <can_refund>1</can_refund>
                 <can_void>1</can_void>
                 <can_cancel>1</can_cancel>
-                <paymentInfoKeys>card_number,status,amount,authorization_code</paymentInfoKeys>
+                <paymentInfoKeys>CardNumber,expiry_month,expiry_year,status,amount,authorization_code</paymentInfoKeys>
             </cse_gateway>
         </payment>
     </default>
