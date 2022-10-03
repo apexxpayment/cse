@@ -68,7 +68,12 @@ class AuthorizeMock implements ClientInterface
      */
     public function placeRequest(TransferInterface $transferObject)
     {
-        $url = $this->apexxBaseHelper->getApiEndpoint().'payment/direct';
+        $apiType = $this->apexxBaseHelper->getApiType();
+        if ($apiType == 'Atomic') {
+            $url = $this->apexxBaseHelper->getApiEndpoint().'payment';
+        } else {
+            $url = $this->apexxBaseHelper->getApiEndpoint().'payment/direct';
+        }
 
         $resultCode = json_encode($transferObject->getBody());
 

@@ -73,7 +73,12 @@ class CaptureMock implements ClientInterface
         if (isset($request['transactionId'])){
             $url = $this->apexxBaseHelper->getApiEndpoint().'capture/'.$request['transactionId'];
         } else {
-            $url = $this->apexxBaseHelper->getApiEndpoint().'payment/direct';
+            $apiType = $this->apexxBaseHelper->getApiType();
+            if ($apiType == 'Atomic') {
+                $url = $this->apexxBaseHelper->getApiEndpoint().'payment';
+            } else {
+                $url = $this->apexxBaseHelper->getApiEndpoint().'payment/direct';
+            }
         }
 
         //Set parameters for curl
